@@ -212,7 +212,7 @@ class FastLSTM(object):
         self.h = h
         self.output = h[-1]
 
-        return self.output
+        return self.h
 
 
 # Parameters
@@ -237,7 +237,7 @@ depth = opts.depth
 
 n_batch = 1000
 xinput = theano.shared(np.random.rand(seq_length, batch_size, hidden_size).astype(np.float32))
-ytarget = theano.shared(np.random.rand(batch_size, hidden_size).astype(np.float32))
+ytarget = theano.shared(np.random.rand(seq_length, batch_size, hidden_size).astype(np.float32))
 
 
 # Network
@@ -246,7 +246,7 @@ start = time.time()
 
 index = T.iscalar()
 x = T.ftensor3()
-y = T.fmatrix()
+y = T.ftensor3()
 
 if network_type == 'rnn':
     rnns = [RNN(hidden_size, hidden_size) for i in xrange(depth)]
@@ -256,9 +256,9 @@ elif network_type == 'fastlstm':
     rnns = [FastLSTM(hidden_size, hidden_size) for i in xrange(depth)]
 else:
     raise Exception('Unknown network!')
-output = x.dimshuffle(1, 0, 2)
+output = x
 for rnn in rnns:
-    output = rnn.link(output)
+    output = rnn.link(output).dimshuffle(1, 0, 2)
 cost = ((output - y) ** 2).mean()
 params = []
 for rnn in rnns:
