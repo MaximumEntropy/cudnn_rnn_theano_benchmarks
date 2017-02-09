@@ -215,6 +215,84 @@ class FastLSTM(object):
         return self.h
 
 
+class FastGRU:
+    """Fast implementation of GRUs."""
+
+    # https://github.com/nyu-dl/dl4mt-tutorial/tree/master/session3
+    def __init__(
+        self,
+        input_dim,
+        output_dim,
+        batch_input=True,
+        name='FastGRU'
+    ):
+        """Initialize FastGRU parameters."""
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.batch_input = batch_input
+
+        # Initialize W
+        self.W = create_shared(random_weights((input_dim, output_dim * 2)), name + 'W')
+
+        self.b = create_shared(random_weights((output_dim * 2, )), name + 'b')
+
+        self.U = create_shared(random_weights((output_dim, output_dim * 2)), name + 'U')
+
+        self.Wx = create_shared(random_weights((input_dim, output_dim)), name + 'Wx')
+
+        self.bx = create_shared(random_weights((output_dim,)), name + 'bx')
+
+        self.Ux = create_shared(random_weights((output_dim, output_dim)), name + 'Ux')
+
+        self.params = [
+            self.W,
+            self.U,
+            self.b,
+            self.Wx,
+            self.Ux,
+            self.bx
+        ]
+
+    def _partition_weights(self, matrix, n):
+        if matrix.ndim == 3:
+            return matrix[:, :, n * self.output_dim: (n + 1) * self.output_dim]
+        return matrix[:, n * self.output_dim: (n + 1) * self.output_dim]
+
+    def link(self, input):
+        """Propogate input through the network."""
+        def recurrence_helper(x_, xx_, h_tm1):
+            preact = T.dot(h_tm1, self.U)
+            preact += x_
+
+            # reset and update gates
+            reset = T.nnet.sigmoid(self._partition_weights(preact, 0))
+            update = T.nnet.sigmoid(self._partition_weights(preact, 1))
+            preactx = T.dot(h_tm1, self.Ux)
+            preactx = preactx * reset
+            preactx = preactx + xx_
+
+            # current hidden state
+            h = T.tanh(preactx)
+
+            h = update * h_tm1 + (1. - update) * h
+
+            return h
+
+        state_below = T.dot(input, self.W) + self.b
+        state_belowx = T.dot(input, self.Wx) + self.bx
+
+        sequences = [state_below, state_belowx]
+        init_states = [T.alloc(0., input.shape[1], self.output_dim)]
+
+        self.h, updates = theano.scan(
+            fn=recurrence_helper,
+            sequences=sequences,
+            outputs_info=init_states,
+            n_steps=input.shape[0],
+        )
+
+        return self.h
+
 # Parameters
 
 optparser = optparse.OptionParser()
@@ -254,11 +332,13 @@ elif network_type == 'lstm':
     rnns = [LSTM(hidden_size, hidden_size) for i in xrange(depth)]
 elif network_type == 'fastlstm':
     rnns = [FastLSTM(hidden_size, hidden_size) for i in xrange(depth)]
+elif network_type == 'fastgru':
+    rnns = [FastGRU(hidden_size, hidden_size) for i in xrange(depth)]
 else:
     raise Exception('Unknown network!')
 output = x
 for rnn in rnns:
-    output = rnn.link(output).dimshuffle(1, 0, 2)
+    output = rnn.link(output)
 cost = ((output - y) ** 2).mean()
 params = []
 for rnn in rnns:

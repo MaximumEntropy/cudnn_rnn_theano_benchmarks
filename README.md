@@ -4,9 +4,9 @@ All benchmarks are reported for a host with the following specifications :
     
     * NVIDIA GeForce GTX TITAN X GPU
 
-    * Intel(R) Xeon(R) CPU X5650  @ 2.67GHz
+    * Intel(R) Core(TM) i7-5930K CPU @ 3.50GHz
 
-    * CUDA 7.5, cudnnv5005
+    * CUDA 8.0, cudnnv5105
 
 These benchmarks are aimed at understanding the performance gains with using the cuDNN RNN implementation (https://devblogs.nvidia.com/parallelforall/optimizing-recurrent-neural-networks-cudnn-5/) in theano.
 
@@ -27,7 +27,7 @@ A more exhaustive grid search will be done soon.
 
 Note: The compile times, although not reported are much faster for the cuDNN implementation. 
 
-## LSTM - cuDNN LSTM vs FastLSTM in rnn.py
+## LSTM - cuDNN LSTM and GRU vs FastLSTM in rnn.py
 
 This LSTM implementation used for these benchmarks does not use peephole connections between cell and gates.
 
@@ -39,22 +39,25 @@ This LSTM implementation used for these benchmarks does not use peephole connect
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 255.2 | 89.9 |
-| cuDNN Theano | 136.3 | 42.8 |
+| Theano LSTM | 204.5 | 57.1 |
+| cuDNN Theano LSTM | 118.8 | 59.5 |
+| cuDNN Theano GRU | 117.4 | 57.6 |
 
 #### Hidden Size 512
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 581.0 | 172.7 |
-| cuDNN Theano | 243.4 | 113.5 |
+| Theano LSTM | 530.9 | 148.1 |
+| cuDNN Theano LSTM | 223.2 | 102.4 |
+| cuDNN Theano GRU | 184.6 | 77.6 |
 
 #### Hidden Size 1024
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 1051.8 | 322.9 |
-| cuDNN Theano | 638.4 | 193.9 |
+| Theano LSTM | 1102.0 | 294.0 |
+| cuDNN Theano LSTM | 601.8 | 161.1 |
+| cuDNN Theano GRU | 394.8 | 136.2 |
 
 ### Batch Size 128 x Seq Len 30
 
@@ -62,23 +65,26 @@ This LSTM implementation used for these benchmarks does not use peephole connect
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 231.0 | 74.0 |
-| cuDNN Theano | 46.4 | 20.9 |
+| Theano LSTM | 200.8 | 52.8 |
+| cuDNN Theano LSTM | 33.4 | 15.0 |
+| cuDNN Theano GRU | 32.2 | 14.4 |
 
 
 #### Hidden Size 512
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 471.4 | 149.7 |
-| cuDNN Theano | 110.9 | 37.9 |
+| Theano LSTM | 491.0 | 138.2 |
+| cuDNN Theano LSTM | 100.8 | 31.7 |
+| cuDNN Theano GRU | 83.3 | 26.5 |
 
 #### Hidden Size 1024
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 886.3 | 289.1 |
-| cuDNN Theano | 204.3 | 70.8 |
+| Theano LSTM | 1000.1 | 291.8 |
+| cuDNN Theano LSTM | 221.2 | 69.0 |
+| cuDNN Theano GRU | 181.3 | 59.1 |
 
 ## Depth 3
 
@@ -88,16 +94,18 @@ This LSTM implementation used for these benchmarks does not use peephole connect
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 742.1 | 419.7 |
-| cuDNN Theano | 228.0 | 75.2 |
+| Theano LSTM | 778.3 | 418.3 |
+| cuDNN Theano LSTM | 244.9 | 70.2 |
+| cuDNN Theano GRU | 197.1 | 55.7 |
 
 
 #### Hidden Size 1024
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 1405.1 | 813.0 |
-| cuDNN Theano | 748.7 | 236.6 |
+| Theano LSTM | 1592.8 | 882.7 |
+| cuDNN Theano LSTM | 820.6 | 256.8 |
+| cuDNN Theano GRU | 639.5 | 195.2 |
 
 ### Batch Size 128 x Seq Len 200
 
@@ -105,12 +113,14 @@ This LSTM implementation used for these benchmarks does not use peephole connect
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 2031.3 | 1121.5 |
-| cuDNN Theano | 1436.3 | 465.1 |
+| Theano LSTM | 2196.6 | 1168.1 |
+| cuDNN Theano LSTM | 1539.5 | 485.9 |
+| cuDNN Theano GRU | 1253.8 | 386.4 |
 
 #### Hidden Size 1024
 
 | Version | Train (µs) | Forward only (µs) |
 | ------------- | ------------- | ------------- |
-| Theano | 5339.6 | 3161.8 |
-| cuDNN Theano | 4719.5 | 1553.2 |
+| Theano LSTM | 5711.1 | 3427.9 |
+| cuDNN Theano LSTM | 5342.5 | 1692.1 |
+| cuDNN Theano GRU | 4163.4 | 1274.5 |
