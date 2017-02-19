@@ -86,22 +86,41 @@ params_cudnn = gpuarray_shared_constructor(
     np.zeros((psize,), dtype=theano.config.floatX)
 )
 
-# lstm = LSTM(input_dim, hidden_dim)
-output = rnnb.apply(params_cudnn, X, h0, c0)[0]  # Only hidden states
+if network_type == 'lstm':
+    output = rnnb.apply(params_cudnn, X, h0, c0)[0]  # Only hidden states
+else:
+    output = rnnb.apply(params_cudnn, X, h0)[0]
+
 cost = T.mean((Y - output) ** 2)
 grads = T.grad(cost, params_cudnn)
-cudnn_fn = theano.function(
-    inputs=[],
-    outputs=output,
-    mode=mode_with_gpu,
-    givens={X: x_val, h0: h0_val, c0: c0_val}
-)
-cudnn_grad_fn = theano.function(
-    inputs=[],
-    outputs=grads,
-    mode=mode_with_gpu,
-    givens={X: x_val, Y: y_val, h0: h0_val, c0: c0_val}
-)
+
+if network_type == 'lstm':
+    cudnn_fn = theano.function(
+        inputs=[],
+        outputs=output,
+        mode=mode_with_gpu,
+        givens={X: x_val, h0: h0_val, c0: c0_val}
+    )
+    cudnn_grad_fn = theano.function(
+        inputs=[],
+        outputs=grads,
+        mode=mode_with_gpu,
+        givens={X: x_val, Y: y_val, h0: h0_val, c0: c0_val}
+    )
+
+else:
+    cudnn_fn = theano.function(
+        inputs=[],
+        outputs=output,
+        mode=mode_with_gpu,
+        givens={X: x_val, h0: h0_val}
+    )
+    cudnn_grad_fn = theano.function(
+        inputs=[],
+        outputs=grads,
+        mode=mode_with_gpu,
+        givens={X: x_val, Y: y_val, h0: h0_val}
+    )
 
 cudnn_fn()
 cudnn_grad_fn()
